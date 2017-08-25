@@ -241,7 +241,7 @@ public class HttpClientUtil {
     /**
      * 打印cookie
      */
-    private void printCookie() {
+    public void printCookie() {
         System.out.println("************************************");
         cookieStore = context.getCookieStore();
         List<Cookie> cookies = cookieStore.getCookies();
