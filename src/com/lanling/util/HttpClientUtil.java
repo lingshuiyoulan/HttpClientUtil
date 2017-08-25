@@ -28,6 +28,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -171,6 +172,33 @@ public class HttpClientUtil {
         httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
         if (host != null) httpPost.setHeader("Host", host);
         if (param != null) httpPost.setEntity(new UrlEncodedFormEntity(param, encoding == null ? "utf-8" : encoding));
+        CloseableHttpResponse resp = httpClient.execute(httpPost, context);
+//        printCookie();
+        String respContent = null;
+        if (resp.getStatusLine().getStatusCode() == 200) {
+            HttpEntity he = resp.getEntity();
+            respContent = EntityUtils.toString(he, "UTF-8");
+        }
+        return respContent;
+    }
+
+    /**
+     * post请求
+     *
+     * @param url      url
+     * @param param    text文本类型参数
+     * @param host     请求头主机
+     * @param encoding 编码 默认 utf-8
+     * @return respContent 字符串类型
+     * @throws IOException e
+     */
+    public String postWithText(String url, Object param, String host, String encoding) throws IOException {
+        HttpPost httpPost = new HttpPost(url);
+        setHeader(httpPost);
+        httpPost.setHeader("Content-Type", "text/plain");
+        if (host != null) httpPost.setHeader("Host", host);
+        if (param != null)
+            httpPost.setEntity((new StringEntity(param.toString(), Charset.forName(encoding == null ? "UTF-8" : encoding))));
         CloseableHttpResponse resp = httpClient.execute(httpPost, context);
 //        printCookie();
         String respContent = null;
