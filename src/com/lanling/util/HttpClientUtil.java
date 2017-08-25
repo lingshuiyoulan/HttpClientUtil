@@ -20,6 +20,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.SSLContext;
@@ -30,6 +31,7 @@ import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -96,9 +98,9 @@ public class HttpClientUtil {
     /**
      * get请求
      *
-     * @param url  url
-     * @param param  param
-     * @param host 请求头主机
+     * @param url   url
+     * @param param param
+     * @param host  请求头主机
      * @return respContent 字符串类型
      * @throws IOException e
      */
@@ -158,12 +160,13 @@ public class HttpClientUtil {
      * @return respContent 字符串类型
      * @throws IOException e
      */
-    public String post(String url, List<NameValuePair> param, String host, String encoding) throws IOException {
+    public String post(String url, Map<String, String> param, String host, String encoding) throws IOException {
         HttpPost httpPost = new HttpPost(url);
         setHeader(httpPost);
         httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
         if (host != null) httpPost.setHeader("Host", host);
-        if (param != null) httpPost.setEntity(new UrlEncodedFormEntity(param, encoding == null ? "utf-8" : encoding));
+        if (param != null && param.size() > 0)
+            httpPost.setEntity(new UrlEncodedFormEntity(map2ListNameValuePair(param), encoding == null ? "utf-8" : encoding));
         CloseableHttpResponse resp = httpClient.execute(httpPost, context);
         String respContent = null;
         if (resp.getStatusLine().getStatusCode() == 200) {
@@ -173,6 +176,17 @@ public class HttpClientUtil {
         resp.close();
         return respContent;
     }
+
+    private List<NameValuePair> map2ListNameValuePair(Map<String, String> param) {
+        List<NameValuePair> params = new ArrayList<>();
+        NameValuePair pair;
+        for (String key : param.keySet()) {
+            pair = new BasicNameValuePair(key, param.get(key));
+            params.add(pair);
+        }
+        return params;
+    }
+
 
     /**
      * post请求
