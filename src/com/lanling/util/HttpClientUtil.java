@@ -1,7 +1,6 @@
 package com.lanling.util;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
@@ -28,12 +27,10 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -43,22 +40,18 @@ import java.util.Map;
  *         on 2017/8/24
  */
 public class HttpClientUtil {
-    private static HttpClientUtil client = null;
+    private static HttpClientUtil util = null;
     private static CloseableHttpClient httpClient = null;
     private static HttpClientContext context = null;
     private static CookieStore cookieStore = null;
 
     public static HttpClientUtil getHttpClientUtil() {
-        if (client == null) {
+        if (util == null) {
             synchronized (HttpClientUtil.class) {
-                try {
-                    client = new HttpClientUtil();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                util = new HttpClientUtil();
             }
         }
-        return client;
+        return util;
     }
 
     /**
@@ -83,7 +76,6 @@ public class HttpClientUtil {
                 .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
                 .setRedirectStrategy(new DefaultRedirectStrategy()).setDefaultRequestConfig(requestConfig)
                 .setDefaultCookieStore(cookieStore).build();
-
     }
 
     /**
@@ -94,7 +86,7 @@ public class HttpClientUtil {
      * @param domain damain
      * @param path   path
      */
-    private void addCookie(String name, String value, String domain, String path) {
+    public void addCookie(String name, String value, String domain, String path) {
         BasicClientCookie cookie = new BasicClientCookie(name, value);
         cookie.setDomain(domain);
         cookie.setPath(path);
@@ -111,22 +103,22 @@ public class HttpClientUtil {
      */
     public String get(String url, Map<String, Object> param, String host) throws IOException {
         String params = map2String(param);
-        HttpGet httpGet = new HttpGet(url + "?" + params);
+        HttpGet httpGet = new HttpGet(url + params);
         setHeader(httpGet);
         if (host != null) httpGet.setHeader("Host", host);
         String respContent = null;
-        HttpResponse resp = httpClient.execute(httpGet, context);
-//        printCookie();
+        CloseableHttpResponse resp = httpClient.execute(httpGet, context);
         if (resp.getStatusLine().getStatusCode() == 200) {
             HttpEntity he = resp.getEntity();
             respContent = EntityUtils.toString(he, "UTF-8");
         }
+        resp.close();
         return respContent;
     }
 
     private String map2String(Map<String, Object> param) {
         if (param != null && param.size() > 0) {
-            StringBuilder params = new StringBuilder();
+            StringBuilder params = new StringBuilder("?");
             for (String key : param.keySet()) {
                 params.append(key).append("=").append(param.get(key)).append("&");
             }
@@ -145,14 +137,13 @@ public class HttpClientUtil {
     public InputStream getAsStream(String url, String host) throws IOException {
         HttpGet httpGet = new HttpGet(url);
         setHeader(httpGet);
-        httpGet.setHeader("Upgrade-Insecure-Requests", "1");
         if (host != null) httpGet.setHeader("Host", host);
-        HttpResponse resp = httpClient.execute(httpGet, context);
-//        printCookie();
+        CloseableHttpResponse resp = httpClient.execute(httpGet, context);
         InputStream in;
         if (resp.getStatusLine().getStatusCode() == 200) {
             in = resp.getEntity().getContent();
         } else in = null;
+        resp.close();
         return in;
     }
 
@@ -173,12 +164,12 @@ public class HttpClientUtil {
         if (host != null) httpPost.setHeader("Host", host);
         if (param != null) httpPost.setEntity(new UrlEncodedFormEntity(param, encoding == null ? "utf-8" : encoding));
         CloseableHttpResponse resp = httpClient.execute(httpPost, context);
-//        printCookie();
         String respContent = null;
         if (resp.getStatusLine().getStatusCode() == 200) {
             HttpEntity he = resp.getEntity();
             respContent = EntityUtils.toString(he, "UTF-8");
         }
+        resp.close();
         return respContent;
     }
 
@@ -192,55 +183,53 @@ public class HttpClientUtil {
      * @return respContent 字符串类型
      * @throws IOException e
      */
-    public String postWithText(String url, Object param, String host, String encoding) throws IOException {
+    public String postWithText(String url, String param, String host, String encoding) throws IOException {
         HttpPost httpPost = new HttpPost(url);
         setHeader(httpPost);
         httpPost.setHeader("Content-Type", "text/plain");
         if (host != null) httpPost.setHeader("Host", host);
         if (param != null)
-            httpPost.setEntity((new StringEntity(param.toString(), Charset.forName(encoding == null ? "UTF-8" : encoding))));
+            httpPost.setEntity((new StringEntity(param, encoding == null ? "UTF-8" : encoding)));
         CloseableHttpResponse resp = httpClient.execute(httpPost, context);
-//        printCookie();
         String respContent = null;
         if (resp.getStatusLine().getStatusCode() == 200) {
             HttpEntity he = resp.getEntity();
             respContent = EntityUtils.toString(he, "UTF-8");
         }
+        resp.close();
         return respContent;
     }
 
     /**
-     * @param url      url
-     * @param param    JSONObject
-     * @param host     请求头主机
-     * @param encoding 编码 默认 utf-8
+     * @param url   url
+     * @param param JSONObject
+     * @param host  请求头主机
      * @return respContent 字符串类型
      * @throws IOException e
      */
-    public String postWithJson(String url, Object param, String host, String encoding) throws IOException {
+    public String postWithJson(String url, Object param, String host) throws IOException {
 
         HttpPost httpPost = new HttpPost(url);
         setHeader(httpPost);
-        httpPost.setHeader("Content-Type", "application/json;encoding=utf-8");
+        httpPost.setHeader("Content-Type", "application/json; charset=utf-8");
         if (host != null) httpPost.setHeader("Host", host);
-        if (encoding == null) encoding = "utf-8";
-        StringEntity entity = new StringEntity(param.toString(), encoding);//解决中文乱码问题
-        entity.setContentEncoding(encoding.toUpperCase(Locale.ENGLISH));
+        StringEntity entity = new StringEntity(param.toString(), "UTF-8");//解决中文乱码问题
+        entity.setContentEncoding("UTF-8");
         entity.setContentType("application/json");
         httpPost.setEntity(entity);
         CloseableHttpResponse resp = httpClient.execute(httpPost, context);
-//        printCookie();
         String respContent = null;
         if (resp.getStatusLine().getStatusCode() == 200) {
             respContent = EntityUtils.toString(resp.getEntity(), "UTF-8");
         }
+        resp.close();
         return respContent;
     }
 
     /**
      * 设置请求头 标志浏览器
      *
-     * @param http http
+     * @param http AbstractExecutionAwareRequest
      */
     private void setHeader(AbstractExecutionAwareRequest http) {
         http.setHeader("Accept", "application/json, text/javascript, */*; q=0.01");
@@ -276,7 +265,7 @@ public class HttpClientUtil {
 
         //创建自定义的httpclient对象
         CloseableHttpClient client = HttpClients.custom().setConnectionManager(connManager).build();
-//       CloseableHttpClient client = HttpClients.createDefault();
+//       CloseableHttpClient util = HttpClients.createDefault();
 
         //创建get方式请求对象
         HttpGet httpGet = new HttpGet(url);
@@ -292,8 +281,7 @@ public class HttpClientUtil {
 
         //执行请求操作，并拿到结果（同步阻塞）
         CloseableHttpResponse response = client.execute(httpGet);
-//        client.getCookieStore().getCookies();
-//        printCookie();
+//        util.getCookieStore().getCookies();
 
         //获取结果实体
         HttpEntity entity = response.getEntity();
