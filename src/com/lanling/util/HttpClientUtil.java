@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The Class
+ * The Class HttpClientUtil
  *
  * @author Lanling
  *         on 2017/8/24
