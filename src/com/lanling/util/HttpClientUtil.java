@@ -97,6 +97,7 @@ public class HttpClientUtil {
      * get请求
      *
      * @param url  url
+     * @param param  param
      * @param host 请求头主机
      * @return respContent 字符串类型
      * @throws IOException e
