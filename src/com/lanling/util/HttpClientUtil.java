@@ -100,15 +100,13 @@ public class HttpClientUtil {
      *
      * @param url   url
      * @param param param
-     * @param host  请求头主机
      * @return respContent 字符串类型
      * @throws IOException e
      */
-    public String get(String url, Map<String, Object> param, String host) throws IOException {
+    public String get(String url, Map<String, Object> param) throws IOException {
         String params = map2String(param);
         HttpGet httpGet = new HttpGet(url + params);
         setHeader(httpGet);
-        if (host != null) httpGet.setHeader("Host", host);
         String respContent = null;
         CloseableHttpResponse resp = httpClient.execute(httpGet, context);
         if (resp.getStatusLine().getStatusCode() == 200) {
@@ -133,14 +131,12 @@ public class HttpClientUtil {
      * get请求
      *
      * @param url  url
-     * @param host 请求头主机
      * @return in 输入流
      * @throws IOException e
      */
-    public InputStream getAsStream(String url, String host) throws IOException {
+    public InputStream getAsStream(String url) throws IOException {
         HttpGet httpGet = new HttpGet(url);
         setHeader(httpGet);
-        if (host != null) httpGet.setHeader("Host", host);
         CloseableHttpResponse resp = httpClient.execute(httpGet, context);
         InputStream in;
         if (resp.getStatusLine().getStatusCode() == 200) {
@@ -155,16 +151,14 @@ public class HttpClientUtil {
      *
      * @param url      url
      * @param param    form表单参数
-     * @param host     请求头主机
      * @param encoding 编码 默认 utf-8
      * @return respContent 字符串类型
      * @throws IOException e
      */
-    public String post(String url, Map<String, String> param, String host, String encoding) throws IOException {
+    public String post(String url, Map<String, String> param, String encoding) throws IOException {
         HttpPost httpPost = new HttpPost(url);
         setHeader(httpPost);
         httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-        if (host != null) httpPost.setHeader("Host", host);
         if (param != null && param.size() > 0)
             httpPost.setEntity(new UrlEncodedFormEntity(map2ListNameValuePair(param), encoding == null ? "utf-8" : encoding));
         CloseableHttpResponse resp = httpClient.execute(httpPost, context);
@@ -193,16 +187,14 @@ public class HttpClientUtil {
      *
      * @param url      url
      * @param param    text文本类型参数
-     * @param host     请求头主机
      * @param encoding 编码 默认 utf-8
      * @return respContent 字符串类型
      * @throws IOException e
      */
-    public String postWithText(String url, String param, String host, String encoding) throws IOException {
+    public String postWithText(String url, String param, String encoding) throws IOException {
         HttpPost httpPost = new HttpPost(url);
         setHeader(httpPost);
         httpPost.setHeader("Content-Type", "text/plain");
-        if (host != null) httpPost.setHeader("Host", host);
         if (param != null)
             httpPost.setEntity((new StringEntity(param, encoding == null ? "UTF-8" : encoding)));
         CloseableHttpResponse resp = httpClient.execute(httpPost, context);
@@ -218,16 +210,14 @@ public class HttpClientUtil {
     /**
      * @param url   url
      * @param param JSONObject
-     * @param host  请求头主机
      * @return respContent 字符串类型
      * @throws IOException e
      */
-    public String postWithJson(String url, Object param, String host) throws IOException {
+    public String postWithJson(String url, Object param) throws IOException {
 
         HttpPost httpPost = new HttpPost(url);
         setHeader(httpPost);
         httpPost.setHeader("Content-Type", "application/json; charset=utf-8");
-        if (host != null) httpPost.setHeader("Host", host);
         StringEntity entity = new StringEntity(param.toString(), "UTF-8");//解决中文乱码问题
         entity.setContentEncoding("UTF-8");
         entity.setContentType("application/json");
