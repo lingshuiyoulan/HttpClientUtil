@@ -36,21 +36,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The Class HttpClientUtil
+ * The Class HttpUtil
  *
  * @author Lanling
  *         on 2017/8/24
  */
-public class HttpClientUtil {
-    private static HttpClientUtil util = null;
+public class HttpUtil {
+    private static HttpUtil util = null;
     private static CloseableHttpClient httpClient = null;
     private static HttpClientContext context = null;
     private static CookieStore cookieStore = null;
 
-    public static HttpClientUtil getHttpClientUtil() {
+    public static HttpUtil getHttpClientUtil() {
         if (util == null) {
-            synchronized (HttpClientUtil.class) {
-                util = new HttpClientUtil();
+            synchronized (HttpUtil.class) {
+                util = new HttpUtil();
             }
         }
         return util;
@@ -59,7 +59,7 @@ public class HttpClientUtil {
     /**
      * 私有构造
      */
-    private HttpClientUtil() {
+    private HttpUtil() {
         getHttpClient();
     }
 
