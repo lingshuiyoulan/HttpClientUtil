@@ -68,7 +68,6 @@ public class HttpsUtil {
         return HttpUtil.response(response, charset);
     }
 
-
     public static String doPost(String url) throws KeyManagementException, NoSuchAlgorithmException, IOException {
         return doPost(url, null, StandardCharsets.UTF_8);
     }
