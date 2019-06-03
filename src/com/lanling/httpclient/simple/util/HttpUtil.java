@@ -221,6 +221,7 @@ public class HttpUtil {
             } else {
                 httpPost.addHeader("Content-Type", "application/json");
                 httpPost.setEntity(new StringEntity(params.toString(), charset));
+
             }
         }
 
